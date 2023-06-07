@@ -1,33 +1,17 @@
-"use client";
-import { useState } from "react";
-
 type Photo = {
   id: string;
   url: string;
   alt: string;
 };
 
-export default function Search() {
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+export default async function Search({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const query = searchParams?.query ? `${searchParams.query}` : undefined;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    fetch(`/api/search/?query=${encodeURIComponent(query)}`)
-      .then((response) => response.json())
-      .then((results) => {
-        setLoading(false);
-        setPhotos(
-          results.data.results.map((item: any) => ({
-            id: item.id,
-            url: item.urls.regular,
-            alt: item.alt_description,
-          }))
-        );
-      });
-  };
+  const photos = await getPhotos(query);
 
   return (
     <main>
@@ -35,19 +19,12 @@ export default function Search() {
         <p>This is search</p>
         <a href="/">Go to home</a>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+        <form action="/search" method="GET">
+          <input type="text" name="query" placeholder="Search" />
           <button type="submit">Submit</button>
         </form>
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
+        {photos ? (
           <>
             <h1>Photos:</h1>
             {photos.length > 0 ? (
@@ -62,8 +39,26 @@ export default function Search() {
               <p>No photos found.</p>
             )}
           </>
-        )}
+        ) : null}
       </div>
     </main>
   );
+}
+
+async function getPhotos(query?: string): Promise<Photo[] | undefined> {
+  if (!query) {
+    return undefined;
+  }
+  const res = await fetch(
+    `https://api.unsplash.com/search/photos/?query=${encodeURIComponent(
+      query
+    )}&client_id=${process.env.UNSPLASH_ACCESS_KEY}`
+  );
+  const data = await res.json();
+
+  return data.results.map((item: any) => ({
+    id: item.id,
+    url: item.urls.regular,
+    alt: item.alt_description,
+  }));
 }
