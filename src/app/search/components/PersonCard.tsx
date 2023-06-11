@@ -1,15 +1,9 @@
 import * as React from "react";
-
-export type Person = {
-  name: string;
-  height: string;
-  mass: string;
-  hair_color: string;
-};
+import { Person } from "../types/Person";
 
 export const PersonCard = ({ person }: { person: Person }) => {
   return (
-    <div className="bg-slate-300 rounded py-8 px-4 shadow-md">
+    <div className="bg-slate-300 rounded py-8 px-4 shadow-md min-w-max">
       <h2 className="text-xl font-semibold text-center">{person.name}</h2>
       <div className="w-full h-px bg-slate-800 mb-2" />
       <p className="font-medium">Height: {person.height}</p>
